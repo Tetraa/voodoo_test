@@ -39,9 +39,9 @@ describe('POST /api/games', function () {
 /**
  * Testing search
  */
- describe('POST /api/games/search', function () {
+describe('POST /api/games/search', function () {
     it('respond with json containing no game', function (done) {
-        let data = {name: 'TTT'}
+        let data = { name: 'TTT' }
         request(app)
             .post('/api/games/search')
             .set('Accept', 'application/json')
@@ -56,7 +56,6 @@ describe('POST /api/games', function () {
     });
 
     it('respond with json containing all games', function (done) {
-        let data = {name: 'TTT'}
         request(app)
             .post('/api/games/search')
             .set('Accept', 'application/json')
@@ -76,7 +75,7 @@ describe('POST /api/games', function () {
     });
 
     it('respond with json containing an ios game', function (done) {
-        let data = {platform: 'ios'};
+        let data = { platform: 'ios' };
 
         request(app)
             .post('/api/games/search')
@@ -98,7 +97,7 @@ describe('POST /api/games', function () {
     });
 
     it('respond with json containing the game named Test', function (done) {
-        let data = {name: 'Test'};
+        let data = { name: 'Test' };
 
         request(app)
             .post('/api/games/search')
@@ -150,7 +149,7 @@ describe('GET /api/games', function () {
  */
 describe('PUT /api/games/1', function () {
     let data = {
-        id : 1,
+        id: 1,
         publisherId: "999000999",
         name: "Test App Updated",
         platform: "android",
@@ -192,6 +191,27 @@ describe('DELETE /api/games/1', function () {
             .expect(200)
             .end((err) => {
                 if (err) return done(err);
+                done();
+            });
+    });
+});
+
+/**
+ * Testing populate game endpoint
+ */
+describe('GET /api/games/populate', function () {
+    it('respond with 200', function (done) {
+        this.timeout(5000)
+        
+        request(app)
+            .get('/api/games/populate')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                console.log(result.body.length);
+                assert.strictEqual(result.body.length, 200);
                 done();
             });
     });
