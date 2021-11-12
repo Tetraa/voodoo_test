@@ -4,7 +4,10 @@ module.exports = (sequelize, DataTypes) => {
     publisherId: DataTypes.STRING,
     name: DataTypes.STRING,
     platform: DataTypes.STRING,
-    storeId: DataTypes.STRING,
+    storeId: {
+      type: DataTypes.STRING,
+      unique: true
+    },
     bundleId: DataTypes.STRING,
     appVersion: DataTypes.STRING,
     isPublished: DataTypes.BOOLEAN,

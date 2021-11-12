@@ -33,6 +33,13 @@
         <add-update-game title="Add Game" @save-game="onAddOrUpdateGame" />
       </div>
     </section>
+
+
+    <section class="section section-container" style="padding-bottom: 10px;">
+      <div class="box">
+        <populate-game title="PopulateGame" @populate="populateGame" />
+      </div>
+    </section>
   </div>
   <script>
   const AddUpdateGame = {
@@ -127,9 +134,34 @@
     `
   }
 
+  const populateGame = {
+    props: ['game', 'title'],
+    data () {
+      return {}
+    },
+    methods: {
+      populate() {
+        this.$emit('populate');
+      }
+    },
+    template: `
+      <form class="form" @submit.prevent="populate">
+        <h3 class='subtitle'>{{ title }}</h3>
+        <div class="field">
+            <div class="control">
+              <button class="button is-success">Populate</button>
+            </div>
+        </div>
+      </form>
+    `
+  }
+
   const Game = {
     props: ['game'],
-    components: { 'add-update-game': AddUpdateGame },
+    components: { 
+      'add-update-game': AddUpdateGame,
+      'populate-game': populateGame
+    },
     data () {
       return {
         showDetail: false
@@ -141,6 +173,9 @@
       },
       deleteGame (game) {
         this.$emit('delete-game', game)
+      },
+      populateGame () {
+        this.$emit('populate-game')
       }
     },
     template: `
@@ -164,7 +199,11 @@
 
   new Vue({
     el: '#app',
-    components: { game: Game, 'add-update-game': AddUpdateGame },
+    components: { 
+      game: Game, 
+      'add-update-game': AddUpdateGame,
+      'populate-game': populateGame
+    },
     data: {
       games: [],
       apiURL: 'http://localhost:3000/api/games'
@@ -184,6 +223,20 @@
             copy.push(response.data)
             this.games = copy
           })
+      },
+      populateGame () {
+        axios.get(this.apiURL + '/populate')
+        .then((response) => {
+          if (typeof(response) === 'string') alert("Fail to populated");
+          else { 
+            console.log(response);
+            const copy = this.games.slice()
+            const idx = copy.findIndex((c) => c.id === response.data.id)
+            copy[idx] = response.data
+            this.games = copy
+            alert("Success, the database is populated");
+          }
+        })
       },
       updateGame (game) {
         return axios.put(`${this.apiURL}/${game.id}`, game)
