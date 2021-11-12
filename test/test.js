@@ -37,6 +37,90 @@ describe('POST /api/games', function () {
 });
 
 /**
+ * Testing search
+ */
+ describe('POST /api/games/search', function () {
+    it('respond with json containing no game', function (done) {
+        let data = {name: 'TTT'}
+        request(app)
+            .post('/api/games/search')
+            .set('Accept', 'application/json')
+            .send(data)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                assert.strictEqual(result.body.length, 0);
+                done();
+            });
+    });
+
+    it('respond with json containing all games', function (done) {
+        let data = {name: 'TTT'}
+        request(app)
+            .post('/api/games/search')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                assert.strictEqual(result.body[0].publisherId, '1234567890');
+                assert.strictEqual(result.body[0].name, 'Test App');
+                assert.strictEqual(result.body[0].platform, 'ios');
+                assert.strictEqual(result.body[0].storeId, '1234');
+                assert.strictEqual(result.body[0].bundleId, 'test.bundle.id');
+                assert.strictEqual(result.body[0].appVersion, '1.0.0');
+                assert.strictEqual(result.body[0].isPublished, true);
+                done();
+            });
+    });
+
+    it('respond with json containing an ios game', function (done) {
+        let data = {platform: 'ios'};
+
+        request(app)
+            .post('/api/games/search')
+            .set('Accept', 'application/json')
+            .send(data)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                assert.strictEqual(result.body[0].publisherId, '1234567890');
+                assert.strictEqual(result.body[0].name, 'Test App');
+                assert.strictEqual(result.body[0].platform, 'ios');
+                assert.strictEqual(result.body[0].storeId, '1234');
+                assert.strictEqual(result.body[0].bundleId, 'test.bundle.id');
+                assert.strictEqual(result.body[0].appVersion, '1.0.0');
+                assert.strictEqual(result.body[0].isPublished, true);
+                done();
+            });
+    });
+
+    it('respond with json containing the game named Test', function (done) {
+        let data = {name: 'Test'};
+
+        request(app)
+            .post('/api/games/search')
+            .set('Accept', 'application/json')
+            .send(data)
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                assert.strictEqual(result.body[0].publisherId, '1234567890');
+                assert.strictEqual(result.body[0].name, 'Test App');
+                assert.strictEqual(result.body[0].platform, 'ios');
+                assert.strictEqual(result.body[0].storeId, '1234');
+                assert.strictEqual(result.body[0].bundleId, 'test.bundle.id');
+                assert.strictEqual(result.body[0].appVersion, '1.0.0');
+                assert.strictEqual(result.body[0].isPublished, true);
+                done();
+            });
+    });
+});
+
+/**
  * Testing get all games endpoint
  */
 describe('GET /api/games', function () {
@@ -97,7 +181,7 @@ describe('PUT /api/games/1', function () {
 });
 
 /**
- * Testing update game endpoint
+ * Testing delete game endpoint
  */
 describe('DELETE /api/games/1', function () {
     it('respond with 200', function (done) {
@@ -116,18 +200,4 @@ describe('DELETE /api/games/1', function () {
 /**
  * Testing get all games endpoint
  */
-describe('GET /api/games', function () {
-    it('respond with json containing no games', function (done) {
-        request(app)
-            .get('/api/games')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(200)
-            .end((err, result) => {
-                if (err) return done(err);
-                assert.strictEqual(result.body.length, 0);
-                done();
-            });
-    });
-});
 

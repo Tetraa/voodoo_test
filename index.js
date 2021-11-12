@@ -1,18 +1,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const db = require('./models');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(express.static(`${__dirname}/static`));
 
-app.get('/api/games', (req, res) => db.Game.findAll()
-  .then(games => res.send(games))
-  .catch((err) => {
-    console.log('There was an error querying games', JSON.stringify(err));
-    return res.send(err);
-  }));
+app.get('/api/games', (req, res) => findAll(res));
 
 app.post('/api/games', (req, res) => {
   const { publisherId, name, platform, storeId, bundleId, appVersion, isPublished } = req.body;
@@ -51,6 +48,37 @@ app.put('/api/games/:id', (req, res) => {
     });
 });
 
+
+
+app.post('/api/games/search', (req, res) => {
+  // eslint-disable-next-line radix
+  const { name, platform } = req.body;
+  if ((!platform && !name) || (platform === '' && name === '')) return findAll(res);
+
+  const whereClose = {};
+  if (name) {
+    whereClose.name = { [Op.like]: `%${name}%` };
+  }
+  if(platform === 'ios' || platform === 'android') whereClose.platform = platform;
+  return db.Game.findAll({
+    where: whereClose
+  })
+    .then(game => res.send(game))
+    .catch((err) => {
+      console.log('***There was an error querying a game', JSON.stringify(err));
+      return res.status(400).send(err);
+    });
+});
+
+
+function findAll(res) {
+  db.Game.findAll()
+    .then(games => res.send(games))
+    .catch((err) => {
+      console.log('There was an error querying games', JSON.stringify(err));
+      return res.send(err);
+    });
+}
 
 app.listen(3000, () => {
   console.log('Server is up on port 3000');
