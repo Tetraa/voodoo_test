@@ -55,5 +55,34 @@ The business goal of the game database is to provide an internal service to get 
 #### Question 1
 For you what is missing in the project to make it production ready?
 
+For me this is what we need to make the project ready for the production
+    - docker container, to have the same local environment for everyone but also the same production env
+    - ci/cd, that will execute the test and build the product
+    - documentation for the dev but also for the users (who will describe the api)
+    - more tests, cause here we are missing some
+    - use an orchestrator workload orchestrator to deploy and manage the app (like Nomad/Kubernetes)
+    - a q/a reviews if it's possible
+    
+This is more about the code quality:    
+- a linter, to make anyone push with the same coding style
+- reviewers when we need to merge (git) if it's possible 
+
+
 #### Question 2
 To achieve the final business goal what is your Roadmap and Action plan?
+
+the roadmap will be:
+    - make it production ready
+    - remove the duplicate games in the database (i tried to use the ignoreDuplicates field on the populate feature but it didn't work)
+    - create a cron that will look at the store to get the new published apps
+    - create endpoint with more specification to retrieve a list of app based on different arguments (size of the list, store, version, name, date of published and updated)
+    - create dashboard on grafana (for example) with the information about  the data we put in the database (from which store, over the time, ...)
+    - create a better user interface with also the possibilitty to configure the cron (when we want to lunch it, and the possibility to put option on the game we want to pull from the app stores)
+    - put the api in on a cluster and a load-balancer to manage the multiple access from every voodoo app (make the application more scalable).
+
+If we have the possibility to be two developers on it, the team will need 2 months to achieve this roadmap.
+
+
+
+
+
