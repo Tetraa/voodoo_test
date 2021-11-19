@@ -74,7 +74,20 @@ app.post('/api/games/search', (req, res) => {
 
 
 app.get('/api/games/populate', (req, res) => {
-  requestAndroidTopGames(res, populateAfterProcess);
+  Promise.all([gplay.list({
+    collection: gplay.collection.TOP_FREE_GAMES,
+    num: 100
+  }), store.list({
+    collection: store.collection.TOP_FREE,
+    category: store.category.GAMES,
+    num: 100
+  })]).then((values) => {
+    if (values.length < 2) throw new Error('***Not abble to crawl the stores corectly');
+    populateAfterProcess(values[0], values[1], res);
+  }).catch((err) => {
+    console.log('***There was an error creating the top 100 games of each store', err);
+    return res.status(400).send(err);
+  });
 });
 
 function populateAfterProcess(androidGames, iosGames, res) {
@@ -104,45 +117,47 @@ function populateAfterProcess(androidGames, iosGames, res) {
     });
   }
 
-  return populateDBWithTop100(gameList, res);
-}
-
-function populateDBWithTop100(gameList, res) {
-  return db.Game.bulkCreate(gameList, {
-    fields: ['publisherId', 'name', 'platform', 'storeId', 'bundleId', 'isPublished'],
-    ignoreDuplicates: true
+  db.Game.findAll()
+    .then(gamesFound => {
+    const gamesUpdate = [];
+    for (const game in gameList) {
+      for (const gameFound in gamesFound) {
+        if (gamesFound[gameFound].name === gameList[game].name 
+            && gamesFound[gameFound].platform === gameList[game].platform) {
+              gamesUpdate.push({
+                old: gamesFound[gameFound],
+                new: gameList[game]
+              });
+              gameList.splice(game, 1)
+            }
+      }
+    }
+    populateDBWithTop100(gameList, gamesUpdate, res);
+    updatedDBGames(gamesUpdate);
   })
-  .then(games => res.send(games))
-  .catch((err) => {
-    console.log('***There was an error creating the top 1000 games of each store', JSON.stringify(err));
-    return res.status(400).send(err);
-  });
 }
 
-function requestAndroidTopGames(res, callback) {
-  gplay.list({
-    collection: gplay.collection.TOP_FREE,
-    num: 100
-  }).then(games => {
-    requestIosTopGames(games, res, callback)
-  }).catch((err) => {
-    console.log('***There was an error querying top android games', JSON.stringify(err));
-    return res.status(400).send(err);
-  });
-}
-
-function requestIosTopGames(androidGames, res, callback) {
-  store.list({
-    collection: store.collection.TOP_FREE,
-    num: 100
-  })
-    .then((iosGames) => {
-      callback(androidGames, iosGames, res);
-    })
-    .catch((err) => {
-      console.log('***There was an error querying top ios games', JSON.stringify(err));
-      return res.status(400).send(err);
+function updatedDBGames(gamesUpdate) {
+  for (const game in gamesUpdate) {
+    gamesUpdate[game].old.update(gamesUpdate[game].new)
+        .catch((err) => {
+          console.log('***Error updating game', err);
     });
+  }
+}
+
+function populateDBWithTop100(gameList, gamesUpdate,res) {
+
+  return db.Game.bulkCreate(gameList, {
+    fields: ['publisherId', 'name', 'platform', 'storeId', 'bundleId', 'isPublished']
+  })
+  .then(games => {
+    return res.send({insert: games, tryToUpdate: gamesUpdate})
+  })
+  .catch((err) => {
+    console.log('***There was an error creating the top 100 games of each store', err);
+    return res.status(400).send(err);
+  });
 }
 
 
@@ -150,7 +165,7 @@ function findAll(res) {
   db.Game.findAll()
     .then(games => res.send(games))
     .catch((err) => {
-      console.log('There was an error querying games', JSON.stringify(err));
+      console.log('There was an error querying games', err);
       return res.send(err);
     });
 }

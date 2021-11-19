@@ -229,7 +229,6 @@
         .then((response) => {
           if (typeof(response) === 'string') alert("Fail to populated");
           else { 
-            console.log(response);
             const copy = this.games.slice()
             const idx = copy.findIndex((c) => c.id === response.data.id)
             copy[idx] = response.data

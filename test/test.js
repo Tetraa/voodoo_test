@@ -200,7 +200,7 @@ describe('DELETE /api/games/1', function () {
  * Testing populate game endpoint
  */
 describe('GET /api/games/populate', function () {
-    it('respond with 200', function (done) {
+    it('respond with 200 and insert 200 rows', function (done) {
         this.timeout(5000)
         
         request(app)
@@ -211,7 +211,23 @@ describe('GET /api/games/populate', function () {
             .end((err, result) => {
                 if (err) return done(err);
                 console.log(result.body.length);
-                assert.strictEqual(result.body.length, 200);
+                assert.strictEqual(result.body.insert.length, 200);
+                done();
+            });
+    });
+
+    it('respond with 200 and try to update 200 rows', function (done) {
+        this.timeout(5000)
+        
+        request(app)
+            .get('/api/games/populate')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end((err, result) => {
+                if (err) return done(err);
+                console.log(result.body.length);
+                assert.strictEqual(result.body.tryToUpdate.length, 200);
                 done();
             });
     });
